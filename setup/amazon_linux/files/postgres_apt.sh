@@ -35,7 +35,6 @@ set -e
 cat <<EOF
 This script will enable the PostgreSQL APT repository on apt.postgresql.org on
 your system. The distribution codename used will be $CODENAME-pgdg.
-
 EOF
 
 case $CODENAME in
@@ -55,14 +54,11 @@ case $CODENAME in
 Your system is using the distribution codename $CODENAME, but $CODENAME-pgdg
 does not seem to be a valid distribution on
 $DISTURL
-
 We abort the installation here. If you want to use a distribution different
 from your system, you can call this script with an explicit codename, e.g.
 "$0 precise".
-
 Specifically, if you are using a non-LTS Ubuntu release, refer to
 https://wiki.postgresql.org/wiki/Apt/FAQ#I_am_using_a_non-LTS_release_of_Ubuntu
-
 For more information, refer to https://wiki.postgresql.org/wiki/Apt
 or ask on the mailing list for assistance: pgsql-pkg-debian@postgresql.org
 EOF
@@ -84,7 +80,6 @@ test -e $KEYRING || touch $KEYRING
 apt-key --keyring $KEYRING add - <<EOF
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: GnuPG v1
-
 mQINBE6XR8IBEACVdDKT2HEH1IyHzXkb4nIWAY7echjRxo7MTcj4vbXAyBKOfjja
 UrBEJWHN6fjKJXOYWXHLIYg0hOGeW9qcSiaa1/rYIbOzjfGfhE4x0Y+NJHS1db0V
 G6GUj3qXaeyqIJGS2z7m0Thy4Lgr/LpZlZ78Nf1fliSzBlMo1sV7PpP/7zUO+aA4
@@ -154,9 +149,7 @@ echo "Running apt-get update ..."
 apt-get update
 
 cat <<EOF
-
 You can now start installing packages from apt.postgresql.org.
-
 Have a look at https://wiki.postgresql.org/wiki/Apt for more information;
 most notably the FAQ at https://wiki.postgresql.org/wiki/Apt/FAQ
 EOF
