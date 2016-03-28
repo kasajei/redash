@@ -21,7 +21,11 @@ if [ ! -d "$VERSION_DIR" ]; then
     sudo -u redash mkdir $VERSION_DIR
     sudo -u redash tar -C $VERSION_DIR -xvf $REDASH_TARBALL
     ln -nfs $VERSION_DIR /opt/redash/current
-    ln -nfs /opt/redash/current/setup/amazon_linux/files/env /opt/redash/current/.env
+    if [ -d "files/env" ]; then
+        ln -nfs files/env /opt/redash/current/.env
+    else
+        ln -nfs /opt/redash/current/setup/amazon_linux/files/env /opt/redash/current/.env
+    fi
 fi
 
 
