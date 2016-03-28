@@ -2,7 +2,31 @@
 set -eu
 
 REDASH_BASE_PATH=/opt/redash
-FILES_BASE_URL=https://raw.githubusercontent.com/getredash/redash/master/setup/amazon_linux/files/
+
+# Install latest version
+REDASH_VERSION=${REDASH_VERSION-0.9.1.b1377}
+LATEST_URL="https://github.com/getredash/redash/releases/download/v${REDASH_VERSION}/redash.$REDASH_VERSION.tar.gz"
+VERSION_DIR="/opt/redash/redash.$REDASH_VERSION"
+REDASH_TARBALL=/tmp/redash.tar.gz
+
+
+if [ ! -d "$REDASH_BASE_PATH" ]; then
+    sudo mkdir /opt/redash
+    sudo chown redash /opt/redash
+    sudo -u redash mkdir /opt/redash/logs
+fi
+
+if [ ! -d "$VERSION_DIR" ]; then
+    sudo -u redash wget $LATEST_URL -O $REDASH_TARBALL
+    sudo -u redash mkdir $VERSION_DIR
+    sudo -u redash tar -C $VERSION_DIR -xvf $REDASH_TARBALL
+    ln -nfs $VERSION_DIR /opt/redash/current
+    ln -nfs /opt/redash/current/setup/amazon_linux/files/env /opt/redash/current/.env
+fi
+
+
+
+
 # Verify running as root:
 if [ "$(id -u)" != "0" ]; then
     if [ $# -ne 0 ]; then
@@ -50,7 +74,6 @@ add_service() {
 pg_available=0
 psql --version || pg_available=$?
 if [ $pg_available -ne 0 ]; then
-    # wget $FILES_BASE_URL"postgres_apt.sh" -O /tmp/postgres_apt.sh
     # bash /tmp/postgres_apt.sh
     yum update
     yum -y install postgresql93-server postgresql93-devel
@@ -82,8 +105,8 @@ if [ $redis_available -ne 0 ]; then
     mkdir -p `dirname "$REDIS_LOG_FILE"` || die "Could not create redis log dir"
     mkdir -p "$REDIS_DATA_DIR" || die "Could not create redis data directory"
 
-    wget -O /etc/init.d/redis_6379 $FILES_BASE_URL"redis_init"
-    wget -O $REDIS_CONFIG_FILE $FILES_BASE_URL"redis.conf"
+    ln -nfs /opt/redash/current/setup/amazon_linux/files/redis_init /etc/init.d/redis_6379
+    ln -nfs /opt/redash/current/setup/amazon_linux/files/redis_init $REDIS_CONFIG_FILE
 
     add_service "redis_$REDIS_PORT"
 
@@ -92,31 +115,8 @@ if [ $redis_available -ne 0 ]; then
 fi
 
 
-if [ ! -d "$REDASH_BASE_PATH" ]; then
-    sudo mkdir /opt/redash
-    sudo chown redash /opt/redash
-    sudo -u redash mkdir /opt/redash/logs
-fi
-
-# Default config file
-if [ ! -f "/opt/redash/.env" ]; then
-    sudo -u redash wget $FILES_BASE_URL"env" -O /opt/redash/.env
-fi
-
-# Install latest version
-REDASH_VERSION=${REDASH_VERSION-0.9.1.b1377}
-LATEST_URL="https://github.com/getredash/redash/releases/download/v${REDASH_VERSION}/redash.$REDASH_VERSION.tar.gz"
-VERSION_DIR="/opt/redash/redash.$REDASH_VERSION"
-REDASH_TARBALL=/tmp/redash.tar.gz
-REDASH_TARBALL=/tmp/redash.tar.gz
-
+# pip install
 if [ ! -d "$VERSION_DIR" ]; then
-    sudo -u redash wget $LATEST_URL -O $REDASH_TARBALL
-    sudo -u redash mkdir $VERSION_DIR
-    sudo -u redash tar -C $VERSION_DIR -xvf $REDASH_TARBALL
-    ln -nfs $VERSION_DIR /opt/redash/current
-    ln -nfs /opt/redash/.env /opt/redash/current/.env
-
     cd /opt/redash/current
 
     # TODO: venv?
@@ -181,7 +181,7 @@ fi
 
 
 # Get supervisord startup script
-sudo -u redash wget -O /opt/redash/supervisord/supervisord.conf $FILES_BASE_URL"supervisord.conf"
+sudo -u redash ln -nfs  /opt/redash/current/setup/amazon_linux/files/supervisord.conf /opt/redash/supervisord/supervisord.conf
 
 # install start-stop-daemon
 wget http://developer.axis.com/download/distribution/apps-sys-utils-start-stop-daemon-IR1_9_18-2.tar.gz
@@ -190,22 +190,22 @@ cd apps/sys-utils/start-stop-daemon-IR1_9_18-2/
 gcc start-stop-daemon.c -o start-stop-daemon
 cp start-stop-daemon /sbin/
 
-wget -O /etc/init.d/redash_supervisord $FILES_BASE_URL"redash_supervisord_init"
+ln -nfs  /opt/redash/current/setup/amazon_linux/files/redash_supervisord_init /etc/init.d/redash_supervisord
 add_service "redash_supervisord"
 
 # Nginx setup
 if [ -d "/etc/nginx/conf.d" ]; then
   echo "/etc/nginx/conf.d exists."
-  wget -O /etc/nginx/conf.d/redash.conf $FILES_BASE_URL"nginx_redash_site"
+  ln -nfs  /opt/redash/current/setup/amazon_linux/files/nginx_redash_site /etc/nginx/conf.d/redash.conf
 elif [ -d "/etc/nginx/sites-available" ]; then
   echo "/etc/nginx/sites-available exists."
-  wget -O /etc/nginx/sites-available/redash $FILES_BASE_URL"nginx_redash_site"
+  ln -nfs  /opt/redash/current/setup/amazon_linux/files/nginx_redash_site /etc/nginx/sites-available/redash
   ln -nfs /etc/nginx/sites-available/redash /etc/nginx/conf.d/redash.conf
 else
   mkdir /etc/nginx/sites-available
   if [ $? -ne 0 ] ; then
     echo "create /etc/nginx/sites-available ok"
-    wget -O /etc/nginx/sites-available/redash $FILES_BASE_URL"nginx_redash_site"
+    ln -nfs  /opt/redash/current/setup/amazon_linux/files/nginx_redash_site /etc/nginx/sites-available/redash
     ln -nfs /etc/nginx/sites-available/redash /etc/nginx/conf.d/redash.conf
   else
     echo "ERROR: create /etc/nginx/sites-available failed"
