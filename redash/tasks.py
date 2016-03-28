@@ -370,6 +370,9 @@ def check_alerts_for_query(self, query_id):
             if settings.WEBHOOK_ENDPOINT:
                 notify_webhook(alert, query, html, new_state)
 
+            if settings.SLACK_WEBHOOK_URL:
+                notify_slack(alert, query, new_state)
+
 
 def notify_hipchat(alert, html, new_state):
     try:
@@ -406,6 +409,42 @@ def notify_webhook(alert, query, html, new_state):
         headers = {'Content-Type': 'application/json'}
         auth = HTTPBasicAuth(settings.WEBHOOK_USERNAME, settings.WEBHOOK_PASSWORD) if settings.WEBHOOK_USERNAME else None
         resp = requests.post(settings.WEBHOOK_ENDPOINT, data=json_dumps(data), auth=auth, headers=headers)
+        if resp.status_code != 200:
+            logger.error("webhook send ERROR. status_code => {status}".format(status=resp.status_code))
+    except Exception:
+        logger.exception("webhook send ERROR.")
+
+
+def notify_slack(alert, query, new_state):
+    alert_setting_url = """
+    <a href="{host}/alerts/{alert_id}">Check alert setting</a>
+    """.format(host=base_url(alert.query.org), alert_id=alert.id)
+    query_url = """
+    <a href="{host}/queries/{query_id}">Check query results</a>.
+    """.format(host=base_url(alert.query.org), query_id=query.id)
+    try:
+        data = {
+            'fallback': alert.name,
+            'color': 'warning',
+            'fields': [
+                {
+                    'title': 'Alert',
+                    'value': alert.name
+                },
+                {
+                    'title': 'Query View',
+                    'value': query_url,
+                    "short": True,
+                },
+                {
+                    'title': 'Alert Setting',
+                    'value': alert_setting_url,
+                    "short": True,
+                },
+            ]
+        }
+        headers = {'Content-Type': 'application/json'}
+        resp = requests.post(settings.SLACK_WEBHOOK_URL, data=json_dumps(data), headers=headers)
         if resp.status_code != 200:
             logger.error("webhook send ERROR. status_code => {status}".format(status=resp.status_code))
     except Exception:
