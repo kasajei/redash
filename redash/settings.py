@@ -117,6 +117,8 @@ WEBHOOK_ENDPOINT = os.environ.get('REDASH_WEBHOOK_ENDPOINT', None)
 WEBHOOK_USERNAME = os.environ.get('REDASH_WEBHOOK_USERNAME', None)
 WEBHOOK_PASSWORD = os.environ.get('REDASH_WEBHOOK_PASSWORD', None)
 
+SLACK_WEBHOOK_URL = os.environ.get('REDSAH_SLACK_WEBHOOK_URL', None)
+
 # CORS settings for the Query Result API (and possbily future external APIs).
 # In most cases all you need to do is set REDASH_CORS_ACCESS_CONTROL_ALLOW_ORIGIN
 # to the calling domain (or domains in a comma separated list).

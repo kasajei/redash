@@ -4,8 +4,7 @@ set -eu
 REDASH_BASE_PATH=/opt/redash
 
 # Install latest version
-REDASH_VERSION=${REDASH_VERSION-0.9.2.b1537}
-LATEST_URL="https://github.com/kasajei/redash/archive/v${REDASH_VERSION}.tar.gz"
+LATEST_URL="https://github.com/kasajei/redash/archive/0.9.2.b1539.tar.gz"
 VERSION_DIR="/opt/redash/redash.$REDASH_VERSION"
 REDASH_TARBALL=/tmp/redash.tar.gz
 
@@ -21,7 +20,11 @@ if [ ! -d "$VERSION_DIR" ]; then
     sudo -u redash mkdir $VERSION_DIR
     sudo -u redash tar -C $VERSION_DIR -xvf $REDASH_TARBALL
     ln -nfs $VERSION_DIR /opt/redash/current
-    ln -nfs /opt/redash/current/setup/amazon_linux/files/env /opt/redash/current/.env
+    if [ -d "files/env" ]; then
+        ln -nfs files/env /opt/redash/current/.env
+    else
+        ln -nfs /opt/redash/current/setup/amazon_linux/files/env /opt/redash/current/.env
+    fi
 fi
 
 
