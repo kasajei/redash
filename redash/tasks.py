@@ -416,13 +416,14 @@ def notify_webhook(alert, query, html, new_state):
 
 
 def notify_slack(alert, query, new_state):
-    alert_setting_url = """
-    <a href="{host}/alerts/{alert_id}">Check alert setting</a>
-    """.format(host=base_url(alert.query.org), alert_id=alert.id)
-    query_url = """
-    <a href="{host}/queries/{query_id}">Check query results</a>.
-    """.format(host=base_url(alert.query.org), query_id=query.id)
     try:
+        alert_setting_url = """
+            <a href="{host}/alerts/{alert_id}">Check alert setting</a>
+        """.format(host=base_url(alert.query.org), alert_id=alert.id)
+        query_url = """
+            <a href="{host}/queries/{query_id}">Check query results</a>.
+        """.format(host=base_url(alert.query.org), query_id=query.id)
+
         data = {
             'fallback': alert.name,
             'color': 'warning',
@@ -446,6 +447,6 @@ def notify_slack(alert, query, new_state):
         headers = {'Content-Type': 'application/json'}
         resp = requests.post(settings.SLACK_WEBHOOK_URL, data=json_dumps(data), headers=headers)
         if resp.status_code != 200:
-            logger.error("webhook send ERROR. status_code => {status}".format(status=resp.status_code))
+            logger.error("Slack send ERROR. status_code => {status}".format(status=resp.status_code))
     except Exception:
-        logger.exception("webhook send ERROR.")
+        logger.exception("Slack send ERROR.")
